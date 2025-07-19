@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Settings, AppSettings } from "./Settings";
-import logoImage from "@/assets/teaminova-logo.png";
 
 interface HeaderProps {
   currentView: string;
@@ -29,7 +28,7 @@ export function Header({ currentView, onViewChange, onNewAsset, settings, onSett
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
             <img 
-              src={settings.logoUrl || logoImage} 
+              src={settings.logoUrl || "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png"} 
               alt="Logo" 
               className="w-10 h-10 object-contain"
             />
