@@ -28,19 +28,21 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
   };
 
   const handleCategoriesChange = (value: string) => {
-    // Update the local state with the raw value for display
-    setLocalSettings({ 
-      ...localSettings, 
-      defaultCategories: value.split(/[\r\n,]+/).map(cat => cat.trim()).filter(cat => cat.length > 0)
-    });
+    // Store the raw text value and parse it for the categories array
+    const categories = value
+      .split(/[\r\n,]+/)
+      .map(cat => cat.trim())
+      .filter(cat => cat.length > 0);
+    setLocalSettings({ ...localSettings, defaultCategories: categories });
   };
 
   const handleAuthorsChange = (value: string) => {
-    // Update the local state with the raw value for display
-    setLocalSettings({ 
-      ...localSettings, 
-      authorsList: value.split(/[\r\n,]+/).map(author => author.trim()).filter(author => author.length > 0)
-    });
+    // Store the raw text value and parse it for the authors array
+    const authors = value
+      .split(/[\r\n,]+/)
+      .map(author => author.trim())
+      .filter(author => author.length > 0);
+    setLocalSettings({ ...localSettings, authorsList: authors });
   };
 
   return (
@@ -88,9 +90,15 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
               id="categories"
               value={localSettings.defaultCategories.join('\n')}
               onChange={(e) => handleCategoriesChange(e.target.value)}
-              placeholder="Documents&#10;Images&#10;Videos&#10;Templates&#10;Reports&#10;&#10;Or use commas: Documents, Images, Videos"
+              placeholder="Documents
+Images
+Videos
+Templates
+Reports
+
+Or use commas: Documents, Images, Videos"
               rows={6}
-              className="resize-none font-mono"
+              className="resize-none"
             />
           </div>
 
@@ -101,9 +109,13 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
               id="authors"
               value={localSettings.authorsList.join('\n')}
               onChange={(e) => handleAuthorsChange(e.target.value)}
-              placeholder="John Doe&#10;Jane Smith&#10;Mike Johnson&#10;&#10;Or use commas: John Doe, Jane Smith, Mike Johnson"
+              placeholder="John Doe
+Jane Smith
+Mike Johnson
+
+Or use commas: John Doe, Jane Smith, Mike Johnson"
               rows={6}
-              className="resize-none font-mono"
+              className="resize-none"
             />
           </div>
 
