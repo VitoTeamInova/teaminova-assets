@@ -28,21 +28,19 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
   };
 
   const handleCategoriesChange = (value: string) => {
-    // Support both newline and comma separation
-    const categories = value
-      .split(/[\r\n,]+/)
-      .map(cat => cat.trim())
-      .filter(cat => cat.length > 0);
-    setLocalSettings({ ...localSettings, defaultCategories: categories });
+    // Update the local state with the raw value for display
+    setLocalSettings({ 
+      ...localSettings, 
+      defaultCategories: value.split(/[\r\n,]+/).map(cat => cat.trim()).filter(cat => cat.length > 0)
+    });
   };
 
   const handleAuthorsChange = (value: string) => {
-    // Support both newline and comma separation
-    const authors = value
-      .split(/[\r\n,]+/)
-      .map(author => author.trim())
-      .filter(author => author.length > 0);
-    setLocalSettings({ ...localSettings, authorsList: authors });
+    // Update the local state with the raw value for display
+    setLocalSettings({ 
+      ...localSettings, 
+      authorsList: value.split(/[\r\n,]+/).map(author => author.trim()).filter(author => author.length > 0)
+    });
   };
 
   return (
@@ -90,15 +88,9 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
               id="categories"
               value={localSettings.defaultCategories.join('\n')}
               onChange={(e) => handleCategoriesChange(e.target.value)}
-              placeholder="Documents
-Images
-Videos
-Templates
-Reports
-
-Or use commas: Documents, Images, Videos"
+              placeholder="Documents&#10;Images&#10;Videos&#10;Templates&#10;Reports&#10;&#10;Or use commas: Documents, Images, Videos"
               rows={6}
-              className="resize-none whitespace-pre-wrap"
+              className="resize-none font-mono"
             />
           </div>
 
@@ -109,13 +101,9 @@ Or use commas: Documents, Images, Videos"
               id="authors"
               value={localSettings.authorsList.join('\n')}
               onChange={(e) => handleAuthorsChange(e.target.value)}
-              placeholder="John Doe
-Jane Smith
-Mike Johnson
-
-Or use commas: John Doe, Jane Smith, Mike Johnson"
+              placeholder="John Doe&#10;Jane Smith&#10;Mike Johnson&#10;&#10;Or use commas: John Doe, Jane Smith, Mike Johnson"
               rows={6}
-              className="resize-none whitespace-pre-wrap"
+              className="resize-none font-mono"
             />
           </div>
 

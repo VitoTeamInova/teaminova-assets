@@ -118,11 +118,14 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
     </Button>
   );
 
-  const AssetRow = ({ asset }: { asset: Asset }) => (
+  const AssetRow = ({ asset, index }: { asset: Asset; index: number }) => (
     <div
       key={asset.id}
       onClick={() => onAssetSelect(asset)}
-      className="grid grid-cols-4 gap-4 p-3 hover:bg-muted/50 cursor-pointer border-b border-border"
+      className={cn(
+        "grid grid-cols-4 gap-4 p-3 hover:bg-muted/50 cursor-pointer border-b border-border",
+        index % 2 === 0 ? "bg-accent/10" : "bg-muted/20"
+      )}
     >
       {view === "date" && (
         <>
@@ -215,8 +218,8 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
 
           {/* Asset Rows */}
           <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
-            {view === "date" && filteredAndSortedAssets.map((asset) => (
-              <AssetRow key={asset.id} asset={asset} />
+            {view === "date" && filteredAndSortedAssets.map((asset, index) => (
+              <AssetRow key={asset.id} asset={asset} index={index} />
             ))}
 
             {(view === "category" || view === "author") && groupedAssets?.map(([groupName, groupAssets]) => {
@@ -235,8 +238,8 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
                     <span className="font-medium">{groupName}</span>
                     <span className="ml-2 text-sm text-muted-foreground">({groupAssets.length})</span>
                   </div>
-                  {isExpanded && groupAssets.map((asset) => (
-                    <AssetRow key={asset.id} asset={asset} />
+                  {isExpanded && groupAssets.map((asset, index) => (
+                    <AssetRow key={asset.id} asset={asset} index={index} />
                   ))}
                 </div>
               );

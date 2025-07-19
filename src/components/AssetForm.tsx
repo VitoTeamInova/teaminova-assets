@@ -121,7 +121,7 @@ export function AssetForm({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader>
+        <CardHeader className="bg-accent/20 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {logoUrl && (
@@ -131,7 +131,7 @@ export function AssetForm({
                   className="w-8 h-8 object-contain"
                 />
               )}
-              <CardTitle>
+              <CardTitle className="text-primary">
                 {isNewAsset ? "New Asset" : isEditing ? "Edit Asset" : "Asset Details"}
               </CardTitle>
             </div>
