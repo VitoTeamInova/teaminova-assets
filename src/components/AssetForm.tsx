@@ -26,8 +26,8 @@ interface AssetFormProps {
   onClose: () => void;
   onSave: (asset: Asset) => void;
   onDelete?: (id: string) => void;
-  categories: string[];
-  onAddCategory: (category: string) => void;
+  defaultCategories: string[];
+  authorsList: string[];
 }
 
 export function AssetForm({ 
@@ -36,8 +36,8 @@ export function AssetForm({
   onClose, 
   onSave, 
   onDelete, 
-  categories, 
-  onAddCategory 
+  defaultCategories, 
+  authorsList 
 }: AssetFormProps) {
   const [formData, setFormData] = useState<Asset>({
     assetName: "",
@@ -108,15 +108,7 @@ export function AssetForm({
   };
 
   const handleCategorySelect = (value: string) => {
-    if (value === "new") {
-      if (newCategory.trim()) {
-        onAddCategory(newCategory.trim());
-        setFormData(prev => ({ ...prev, category: newCategory.trim() }));
-        setNewCategory("");
-      }
-    } else {
-      setFormData(prev => ({ ...prev, category: value }));
-    }
+    setFormData(prev => ({ ...prev, category: value }));
   };
 
   if (!isOpen) return null;
@@ -152,14 +144,22 @@ export function AssetForm({
 
           <div>
             <Label htmlFor="authorName">Author Name *</Label>
-            <Input
-              id="authorName"
-              value={formData.authorName}
-              onChange={(e) => setFormData(prev => ({ ...prev, authorName: e.target.value }))}
-              maxLength={100}
+            <Select 
+              value={formData.authorName} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, authorName: value }))}
               disabled={!canEdit}
-              className="mt-1"
-            />
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select an author" />
+              </SelectTrigger>
+              <SelectContent>
+                {authorsList.map((author) => (
+                  <SelectItem key={author} value={author}>
+                    {author}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -185,27 +185,13 @@ export function AssetForm({
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
+                  {defaultCategories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
                     </SelectItem>
                   ))}
-                  <SelectItem value="new">+ Add New Category</SelectItem>
                 </SelectContent>
               </Select>
-              
-              {canEdit && (
-                <Input
-                  placeholder="Enter new category name"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && newCategory.trim()) {
-                      handleCategorySelect("new");
-                    }
-                  }}
-                />
-              )}
             </div>
           </div>
 

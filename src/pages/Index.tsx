@@ -2,11 +2,18 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { AssetForm, Asset } from "@/components/AssetForm";
 import { AssetList } from "@/components/AssetList";
+import { AppSettings } from "@/components/Settings";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState("date");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
+  const [settings, setSettings] = useState<AppSettings>({
+    appName: "TeamInova Assets",
+    logoUrl: "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png",
+    defaultCategories: ["Documents", "Images", "Videos", "Templates", "Reports"],
+    authorsList: ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson", "David Brown"]
+  });
   const [assets, setAssets] = useState<Asset[]>([
     {
       id: "1",
@@ -69,6 +76,8 @@ const Index = () => {
         currentView={currentView}
         onViewChange={setCurrentView}
         onNewAsset={handleNewAsset}
+        settings={settings}
+        onSettingsChange={setSettings}
       />
       
       <main className="container mx-auto px-4 py-6">
@@ -85,8 +94,8 @@ const Index = () => {
         onClose={() => setIsFormOpen(false)}
         onSave={handleSaveAsset}
         onDelete={handleDeleteAsset}
-        categories={categories}
-        onAddCategory={handleAddCategory}
+        defaultCategories={settings.defaultCategories}
+        authorsList={settings.authorsList}
       />
     </div>
   );

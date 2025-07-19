@@ -2,11 +2,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Settings, AppSettings } from "./Settings";
+import logoImage from "@/assets/teaminova-logo.png";
 
 interface HeaderProps {
   currentView: string;
   onViewChange: (view: string) => void;
   onNewAsset: () => void;
+  settings: AppSettings;
+  onSettingsChange: (settings: AppSettings) => void;
 }
 
 const menuItems = [
@@ -15,7 +19,7 @@ const menuItems = [
   { id: "author", label: "By Author" },
 ];
 
-export function Header({ currentView, onViewChange, onNewAsset }: HeaderProps) {
+export function Header({ currentView, onViewChange, onNewAsset, settings, onSettingsChange }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -24,10 +28,12 @@ export function Header({ currentView, onViewChange, onNewAsset }: HeaderProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-              <span className="text-secondary-foreground font-bold text-lg">TI</span>
-            </div>
-            <h1 className="text-xl font-semibold">TeamInova Assets</h1>
+            <img 
+              src={settings.logoUrl || logoImage} 
+              alt="Logo" 
+              className="w-10 h-10 object-contain"
+            />
+            <h1 className="text-xl font-semibold">{settings.appName}</h1>
           </div>
 
           {/* Desktop Menu */}
@@ -53,6 +59,7 @@ export function Header({ currentView, onViewChange, onNewAsset }: HeaderProps) {
               <Plus className="w-4 h-4 mr-2" />
               New Asset
             </Button>
+            <Settings settings={settings} onSettingsChange={onSettingsChange} />
           </nav>
 
           {/* Mobile Menu Button */}
@@ -103,6 +110,9 @@ export function Header({ currentView, onViewChange, onNewAsset }: HeaderProps) {
                 <Plus className="w-4 h-4 mr-2" />
                 New Asset
               </Button>
+              <div className="mt-4">
+                <Settings settings={settings} onSettingsChange={onSettingsChange} />
+              </div>
             </nav>
           </div>
         )}
