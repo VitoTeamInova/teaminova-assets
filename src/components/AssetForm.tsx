@@ -28,6 +28,7 @@ interface AssetFormProps {
   onDelete?: (id: string) => void;
   defaultCategories: string[];
   authorsList: string[];
+  logoUrl?: string;
 }
 
 export function AssetForm({ 
@@ -37,7 +38,8 @@ export function AssetForm({
   onSave, 
   onDelete, 
   defaultCategories, 
-  authorsList 
+  authorsList,
+  logoUrl 
 }: AssetFormProps) {
   const [formData, setFormData] = useState<Asset>({
     assetName: "",
@@ -121,9 +123,18 @@ export function AssetForm({
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>
-              {isNewAsset ? "New Asset" : isEditing ? "Edit Asset" : "Asset Details"}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              {logoUrl && (
+                <img 
+                  src={logoUrl} 
+                  alt="Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+              )}
+              <CardTitle>
+                {isNewAsset ? "New Asset" : isEditing ? "Edit Asset" : "Asset Details"}
+              </CardTitle>
+            </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
             </Button>

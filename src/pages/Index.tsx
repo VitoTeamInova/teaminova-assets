@@ -96,6 +96,7 @@ const Index = () => {
         onDelete={handleDeleteAsset}
         defaultCategories={settings.defaultCategories}
         authorsList={settings.authorsList}
+        logoUrl={settings.logoUrl || "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png"}
       />
     </div>
   );
