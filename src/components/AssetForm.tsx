@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { X, Save, Edit, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -29,6 +29,8 @@ interface AssetFormProps {
   defaultCategories: string[];
   authorsList: string[];
   logoUrl?: string;
+  onAddNewCategory?: (category: string) => void;
+  onAddNewAuthor?: (author: string) => void;
 }
 
 export function AssetForm({ 
@@ -39,7 +41,9 @@ export function AssetForm({
   onDelete, 
   defaultCategories, 
   authorsList,
-  logoUrl 
+  logoUrl,
+  onAddNewCategory,
+  onAddNewAuthor
 }: AssetFormProps) {
   const [formData, setFormData] = useState<Asset>({
     assetName: "",
@@ -155,22 +159,21 @@ export function AssetForm({
 
           <div>
             <Label htmlFor="authorName">Author Name *</Label>
-            <Select 
-              value={formData.authorName} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, authorName: value }))}
+            <Combobox
+              options={authorsList}
+              value={formData.authorName}
+              onValueChange={(value) => {
+                setFormData(prev => ({ ...prev, authorName: value }));
+                // If it's a new author, add it to the list
+                if (value && !authorsList.includes(value) && onAddNewAuthor) {
+                  onAddNewAuthor(value);
+                }
+              }}
+              placeholder="Select or enter author name"
+              searchPlaceholder="Search authors..."
               disabled={!canEdit}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select an author" />
-              </SelectTrigger>
-              <SelectContent>
-                {authorsList.map((author) => (
-                  <SelectItem key={author} value={author}>
-                    {author}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              className="mt-1 w-full"
+            />
           </div>
 
           <div>
@@ -186,24 +189,21 @@ export function AssetForm({
 
           <div>
             <Label htmlFor="category">Category</Label>
-            <div className="space-y-2">
-              <Select 
-                value={formData.category} 
-                onValueChange={handleCategorySelect}
-                disabled={!canEdit}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {defaultCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Combobox
+              options={defaultCategories}
+              value={formData.category}
+              onValueChange={(value) => {
+                setFormData(prev => ({ ...prev, category: value }));
+                // If it's a new category, add it to the list
+                if (value && !defaultCategories.includes(value) && onAddNewCategory) {
+                  onAddNewCategory(value);
+                }
+              }}
+              placeholder="Select or enter category"
+              searchPlaceholder="Search categories..."
+              disabled={!canEdit}
+              className="mt-1 w-full"
+            />
           </div>
 
           <div>

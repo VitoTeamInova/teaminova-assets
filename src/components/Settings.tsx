@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Settings as SettingsIcon, Upload } from "lucide-react";
+import { Settings as SettingsIcon, Upload, Plus, X } from "lucide-react";
 
 export interface AppSettings {
   appName: string;
@@ -21,28 +20,49 @@ interface SettingsProps {
 export function Settings({ settings, onSettingsChange }: SettingsProps) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [isOpen, setIsOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  const [newAuthor, setNewAuthor] = useState("");
 
   const handleSave = () => {
     onSettingsChange(localSettings);
     setIsOpen(false);
   };
 
-  const handleCategoriesChange = (value: string) => {
-    // Store the raw text value and parse it for the categories array
-    const categories = value
-      .split(/[\r\n,]+/)
-      .map(cat => cat.trim())
-      .filter(cat => cat.length > 0);
-    setLocalSettings({ ...localSettings, defaultCategories: categories });
+  const addCategory = () => {
+    if (newCategory.trim() && !localSettings.defaultCategories.includes(newCategory.trim())) {
+      setLocalSettings({
+        ...localSettings,
+        defaultCategories: [...localSettings.defaultCategories, newCategory.trim()]
+      });
+      setNewCategory("");
+    }
   };
 
-  const handleAuthorsChange = (value: string) => {
-    // Store the raw text value and parse it for the authors array
-    const authors = value
-      .split(/[\r\n,]+/)
-      .map(author => author.trim())
-      .filter(author => author.length > 0);
-    setLocalSettings({ ...localSettings, authorsList: authors });
+  const removeCategory = (index: number) => {
+    const updated = localSettings.defaultCategories.filter((_, i) => i !== index);
+    setLocalSettings({ ...localSettings, defaultCategories: updated });
+  };
+
+  const addAuthor = () => {
+    if (newAuthor.trim() && !localSettings.authorsList.includes(newAuthor.trim())) {
+      setLocalSettings({
+        ...localSettings,
+        authorsList: [...localSettings.authorsList, newAuthor.trim()]
+      });
+      setNewAuthor("");
+    }
+  };
+
+  const removeAuthor = (index: number) => {
+    const updated = localSettings.authorsList.filter((_, i) => i !== index);
+    setLocalSettings({ ...localSettings, authorsList: updated });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      action();
+    }
   };
 
   return (
@@ -52,7 +72,7 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
           <SettingsIcon className="w-5 h-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Application Settings</DialogTitle>
         </DialogHeader>
@@ -83,40 +103,78 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="categories">Default Categories</Label>
-            <p className="text-sm text-muted-foreground">Enter categories separated by new lines or commas</p>
-            <Textarea
-              id="categories"
-              value={localSettings.defaultCategories.join('\n')}
-              onChange={(e) => handleCategoriesChange(e.target.value)}
-              placeholder="Documents
-Images
-Videos
-Templates
-Reports
-
-Or use commas: Documents, Images, Videos"
-              rows={6}
-              className="resize-none"
-            />
+          <div className="space-y-3">
+            <Label>Default Categories</Label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Enter new category"
+                  onKeyPress={(e) => handleKeyPress(e, addCategory)}
+                />
+                <Button onClick={addCategory} size="sm">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                {localSettings.defaultCategories.map((category, index) => (
+                  <div key={index} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                    <span className="text-sm">{category}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCategory(index)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+                {localSettings.defaultCategories.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-4">
+                    No categories added yet
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="authors">Authors List</Label>
-            <p className="text-sm text-muted-foreground">Enter author names separated by new lines or commas</p>
-            <Textarea
-              id="authors"
-              value={localSettings.authorsList.join('\n')}
-              onChange={(e) => handleAuthorsChange(e.target.value)}
-              placeholder="John Doe
-Jane Smith
-Mike Johnson
-
-Or use commas: John Doe, Jane Smith, Mike Johnson"
-              rows={6}
-              className="resize-none"
-            />
+          <div className="space-y-3">
+            <Label>Authors List</Label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={newAuthor}
+                  onChange={(e) => setNewAuthor(e.target.value)}
+                  placeholder="Enter new author"
+                  onKeyPress={(e) => handleKeyPress(e, addAuthor)}
+                />
+                <Button onClick={addAuthor} size="sm">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                {localSettings.authorsList.map((author, index) => (
+                  <div key={index} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                    <span className="text-sm">{author}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeAuthor(index)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+                {localSettings.authorsList.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-4">
+                    No authors added yet
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end gap-2">

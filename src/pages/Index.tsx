@@ -97,6 +97,22 @@ const Index = () => {
         defaultCategories={settings.defaultCategories}
         authorsList={settings.authorsList}
         logoUrl={settings.logoUrl || "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png"}
+        onAddNewCategory={(category) => {
+          if (!settings.defaultCategories.includes(category)) {
+            setSettings(prev => ({
+              ...prev,
+              defaultCategories: [...prev.defaultCategories, category]
+            }));
+          }
+        }}
+        onAddNewAuthor={(author) => {
+          if (!settings.authorsList.includes(author)) {
+            setSettings(prev => ({
+              ...prev,
+              authorsList: [...prev.authorsList, author]
+            }));
+          }
+        }}
       />
     </div>
   );
