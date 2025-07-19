@@ -1,0 +1,311 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X, Save, Edit, Trash2, Upload } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
+export interface Asset {
+  id?: string;
+  assetName: string;
+  authorName: string;
+  dateCreated: string;
+  category: string;
+  description: string;
+  attachments: File[];
+  notes: string;
+}
+
+interface AssetFormProps {
+  asset?: Asset;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (asset: Asset) => void;
+  onDelete?: (id: string) => void;
+  categories: string[];
+  onAddCategory: (category: string) => void;
+}
+
+export function AssetForm({ 
+  asset, 
+  isOpen, 
+  onClose, 
+  onSave, 
+  onDelete, 
+  categories, 
+  onAddCategory 
+}: AssetFormProps) {
+  const [formData, setFormData] = useState<Asset>({
+    assetName: "",
+    authorName: "",
+    dateCreated: new Date().toISOString(),
+    category: "",
+    description: "",
+    attachments: [],
+    notes: "",
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (asset) {
+      setFormData(asset);
+      setIsEditing(false);
+    } else {
+      setFormData({
+        assetName: "",
+        authorName: "",
+        dateCreated: new Date().toISOString(),
+        category: "",
+        description: "",
+        attachments: [],
+        notes: "",
+      });
+      setIsEditing(true);
+    }
+  }, [asset]);
+
+  const handleSave = () => {
+    if (!formData.assetName.trim() || !formData.authorName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Asset Name and Author Name are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onSave(formData);
+    setIsEditing(false);
+    toast({
+      title: "Success",
+      description: asset ? "Asset updated successfully." : "Asset created successfully.",
+    });
+  };
+
+  const handleDelete = () => {
+    if (asset?.id && onDelete) {
+      onDelete(asset.id);
+      onClose();
+      toast({
+        title: "Success",
+        description: "Asset deleted successfully.",
+      });
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...files]
+    }));
+  };
+
+  const handleCategorySelect = (value: string) => {
+    if (value === "new") {
+      if (newCategory.trim()) {
+        onAddCategory(newCategory.trim());
+        setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+        setNewCategory("");
+      }
+    } else {
+      setFormData(prev => ({ ...prev, category: value }));
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const isNewAsset = !asset;
+  const canEdit = isNewAsset || isEditing;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {isNewAsset ? "New Asset" : isEditing ? "Edit Asset" : "Asset Details"}
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="assetName">Asset Name *</Label>
+            <Input
+              id="assetName"
+              value={formData.assetName}
+              onChange={(e) => setFormData(prev => ({ ...prev, assetName: e.target.value }))}
+              maxLength={200}
+              disabled={!canEdit}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="authorName">Author Name *</Label>
+            <Input
+              id="authorName"
+              value={formData.authorName}
+              onChange={(e) => setFormData(prev => ({ ...prev, authorName: e.target.value }))}
+              maxLength={100}
+              disabled={!canEdit}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="dateCreated">Date Created</Label>
+            <Input
+              id="dateCreated"
+              type="datetime-local"
+              value={formData.dateCreated.slice(0, 16)}
+              disabled
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="category">Category</Label>
+            <div className="space-y-2">
+              <Select 
+                value={formData.category} 
+                onValueChange={handleCategorySelect}
+                disabled={!canEdit}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="new">+ Add New Category</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {canEdit && (
+                <Input
+                  placeholder="Enter new category name"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newCategory.trim()) {
+                      handleCategorySelect("new");
+                    }
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              disabled={!canEdit}
+              className="mt-1 min-h-[100px]"
+            />
+          </div>
+
+          <div>
+            <Label>Attachments</Label>
+            {canEdit && (
+              <div className="mt-1">
+                <Input
+                  type="file"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="fileUpload"
+                />
+                <Button variant="outline" asChild>
+                  <label htmlFor="fileUpload" className="cursor-pointer">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Files
+                  </label>
+                </Button>
+              </div>
+            )}
+            {formData.attachments.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {formData.attachments.map((file, index) => (
+                  <div key={index} className="text-sm text-muted-foreground">
+                    {file.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              disabled={!canEdit}
+              className="mt-1 min-h-[150px]"
+              placeholder="Rich text notes and any additional information..."
+            />
+          </div>
+
+          <div className="flex justify-between pt-4">
+            <div>
+              {!isNewAsset && !isEditing && (
+                <Button onClick={() => setIsEditing(true)} variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex space-x-2">
+              {!isNewAsset && canEdit && onDelete && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Asset</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You are about to delete "{formData.assetName}". Are you sure you want to continue?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              
+              {canEdit && (
+                <Button onClick={handleSave}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
