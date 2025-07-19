@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Plus, X } from "lucide-react";
+import { Menu, Plus, X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Settings, AppSettings } from "./Settings";
+import { User } from "@supabase/supabase-js";
 
 interface HeaderProps {
   currentView: string;
@@ -10,6 +11,8 @@ interface HeaderProps {
   onNewAsset: () => void;
   settings: AppSettings;
   onSettingsChange: (settings: AppSettings) => void;
+  user?: User;
+  onSignOut?: () => void;
 }
 
 const menuItems = [
@@ -18,7 +21,7 @@ const menuItems = [
   { id: "author", label: "By Author" },
 ];
 
-export function Header({ currentView, onViewChange, onNewAsset, settings, onSettingsChange }: HeaderProps) {
+export function Header({ currentView, onViewChange, onNewAsset, settings, onSettingsChange, user, onSignOut }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -59,6 +62,17 @@ export function Header({ currentView, onViewChange, onNewAsset, settings, onSett
               New Asset
             </Button>
             <Settings settings={settings} onSettingsChange={onSettingsChange} />
+            {user && onSignOut && (
+              <Button
+                onClick={onSignOut}
+                variant="outline"
+                size="sm"
+                className="ml-2"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -112,6 +126,17 @@ export function Header({ currentView, onViewChange, onNewAsset, settings, onSett
               <div className="mt-4">
                 <Settings settings={settings} onSettingsChange={onSettingsChange} />
               </div>
+              {user && onSignOut && (
+                <Button
+                  onClick={onSignOut}
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 self-start"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              )}
             </nav>
           </div>
         )}

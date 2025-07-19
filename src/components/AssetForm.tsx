@@ -15,9 +15,9 @@ export interface Asset {
   authorName: string;
   dateCreated: string;
   category: string;
-  description: string;
+  description?: string;
   attachments: File[];
-  notes: string;
+  notes?: string;
 }
 
 interface AssetFormProps {
@@ -29,6 +29,7 @@ interface AssetFormProps {
   defaultCategories: string[];
   authorsList: string[];
   logoUrl?: string;
+  defaultAuthorName?: string;
   onAddNewCategory?: (category: string) => void;
   onAddNewAuthor?: (author: string) => void;
 }
@@ -42,6 +43,7 @@ export function AssetForm({
   defaultCategories, 
   authorsList,
   logoUrl,
+  defaultAuthorName,
   onAddNewCategory,
   onAddNewAuthor
 }: AssetFormProps) {
@@ -65,7 +67,7 @@ export function AssetForm({
     } else {
       setFormData({
         assetName: "",
-        authorName: "",
+        authorName: defaultAuthorName || "",
         dateCreated: new Date().toISOString(),
         category: "",
         description: "",
@@ -74,7 +76,7 @@ export function AssetForm({
       });
       setIsEditing(true);
     }
-  }, [asset]);
+  }, [asset, defaultAuthorName]);
 
   const handleSave = () => {
     if (!formData.assetName.trim() || !formData.authorName.trim()) {

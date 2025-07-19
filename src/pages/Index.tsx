@@ -1,74 +1,70 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
-import { AssetForm, Asset } from "@/components/AssetForm";
+import { AssetForm } from "@/components/AssetForm";
 import { AssetList } from "@/components/AssetList";
 import { AppSettings } from "@/components/Settings";
+import { AuthForm } from "@/components/AuthForm";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useAssets, Asset } from "@/hooks/useAssets";
+import { Asset as FormAsset } from "@/components/AssetForm";
+import { Button } from "@/components/ui/button";
+import { User } from "@supabase/supabase-js";
 
 const Index = () => {
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { profile } = useProfile();
+  const { assets, loading: assetsLoading, saveAsset, deleteAsset } = useAssets();
+  
   const [currentView, setCurrentView] = useState("date");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
+  const [selectedAsset, setSelectedAsset] = useState<FormAsset | undefined>();
   const [settings, setSettings] = useState<AppSettings>({
     appName: "TeamInova Assets",
     logoUrl: "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png",
     defaultCategories: ["Documents", "Images", "Videos", "Templates", "Reports"],
     authorsList: ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson", "David Brown"]
   });
-  const [assets, setAssets] = useState<Asset[]>([
-    {
-      id: "1",
-      assetName: "Sample Design Document",
-      authorName: "John Doe",
-      dateCreated: "2024-01-15T10:30:00",
-      category: "Documentation",
-      description: "A comprehensive design document for the new project.",
-      attachments: [],
-      notes: "This is a sample asset to demonstrate the system."
-    },
-    {
-      id: "2",
-      assetName: "Project Wireframes",
-      authorName: "Jane Smith",
-      dateCreated: "2024-01-18T14:20:00",
-      category: "Design",
-      description: "Initial wireframes for the user interface.",
-      attachments: [],
-      notes: "Created using Figma, includes mobile and desktop versions."
-    }
-  ]);
-  const [categories, setCategories] = useState(["Documentation", "Design", "Development", "Marketing"]);
+
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  // Show auth form if not logged in
+  if (!user) {
+    return <AuthForm onSuccess={() => {}} />;
+  }
 
   const handleNewAsset = () => {
     setSelectedAsset(undefined);
     setIsFormOpen(true);
   };
 
-  const handleAssetSelect = (asset: Asset) => {
+  const handleAssetSelect = (asset: FormAsset) => {
     setSelectedAsset(asset);
     setIsFormOpen(true);
   };
 
-  const handleSaveAsset = (asset: Asset) => {
-    if (asset.id) {
-      // Update existing asset
-      setAssets(prev => prev.map(a => a.id === asset.id ? asset : a));
-    } else {
-      // Create new asset
-      const newAsset = { ...asset, id: Date.now().toString() };
-      setAssets(prev => [...prev, newAsset]);
-    }
+  const handleSaveAsset = async (asset: FormAsset) => {
+    // Set default author name if not provided
+    const assetWithAuthor = {
+      ...asset,
+      authorName: asset.authorName || profile?.full_name || "User",
+    };
+    
+    await saveAsset(assetWithAuthor);
     setIsFormOpen(false);
   };
 
-  const handleDeleteAsset = (id: string) => {
-    setAssets(prev => prev.filter(a => a.id !== id));
+  const handleDeleteAsset = async (id: string) => {
+    await deleteAsset(id);
   };
 
-  const handleAddCategory = (category: string) => {
-    if (!categories.includes(category)) {
-      setCategories(prev => [...prev, category]);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,14 +74,22 @@ const Index = () => {
         onNewAsset={handleNewAsset}
         settings={settings}
         onSettingsChange={setSettings}
+        user={user}
+        onSignOut={signOut}
       />
       
       <main className="container mx-auto px-4 py-6">
-        <AssetList
-          assets={assets}
-          view={currentView}
-          onAssetSelect={handleAssetSelect}
-        />
+        {assetsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div>Loading assets...</div>
+          </div>
+        ) : (
+          <AssetList
+            assets={assets}
+            view={currentView}
+            onAssetSelect={handleAssetSelect}
+          />
+        )}
       </main>
 
       <AssetForm
@@ -97,6 +101,7 @@ const Index = () => {
         defaultCategories={settings.defaultCategories}
         authorsList={settings.authorsList}
         logoUrl={settings.logoUrl || "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png"}
+        defaultAuthorName={profile?.full_name || "User"}
         onAddNewCategory={(category) => {
           if (!settings.defaultCategories.includes(category)) {
             setSettings(prev => ({
