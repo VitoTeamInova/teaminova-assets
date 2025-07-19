@@ -28,12 +28,20 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
   };
 
   const handleCategoriesChange = (value: string) => {
-    const categories = value.split('\n').filter(cat => cat.trim().length > 0);
+    // Support both newline and comma separation
+    const categories = value
+      .split(/[\n,]/)
+      .map(cat => cat.trim())
+      .filter(cat => cat.length > 0);
     setLocalSettings({ ...localSettings, defaultCategories: categories });
   };
 
   const handleAuthorsChange = (value: string) => {
-    const authors = value.split('\n').filter(author => author.trim().length > 0);
+    // Support both newline and comma separation
+    const authors = value
+      .split(/[\n,]/)
+      .map(author => author.trim())
+      .filter(author => author.length > 0);
     setLocalSettings({ ...localSettings, authorsList: authors });
   };
 
@@ -76,24 +84,28 @@ export function Settings({ settings, onSettingsChange }: SettingsProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="categories">Default Categories (one per line)</Label>
+            <Label htmlFor="categories">Default Categories</Label>
+            <p className="text-sm text-muted-foreground">Enter categories separated by new lines or commas</p>
             <Textarea
               id="categories"
               value={localSettings.defaultCategories.join('\n')}
               onChange={(e) => handleCategoriesChange(e.target.value)}
-              placeholder="Enter categories, one per line"
-              rows={5}
+              placeholder="Documents&#10;Images&#10;Videos&#10;Templates&#10;Reports&#10;&#10;Or use commas: Documents, Images, Videos"
+              rows={6}
+              className="resize-none"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="authors">Authors List (one per line)</Label>
+            <Label htmlFor="authors">Authors List</Label>
+            <p className="text-sm text-muted-foreground">Enter author names separated by new lines or commas</p>
             <Textarea
               id="authors"
               value={localSettings.authorsList.join('\n')}
               onChange={(e) => handleAuthorsChange(e.target.value)}
-              placeholder="Enter author names, one per line"
-              rows={5}
+              placeholder="John Doe&#10;Jane Smith&#10;Mike Johnson&#10;&#10;Or use commas: John Doe, Jane Smith, Mike Johnson"
+              rows={6}
+              className="resize-none"
             />
           </div>
 
