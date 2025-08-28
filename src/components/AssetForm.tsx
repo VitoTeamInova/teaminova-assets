@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
 import { X, Save, Edit, Trash2, Upload } from "lucide-react";
@@ -251,14 +252,15 @@ export function AssetForm({
 
           <div>
             <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              disabled={!canEdit}
-              className="mt-1 min-h-[150px]"
-              placeholder="Rich text notes and any additional information..."
-            />
+            <div className="mt-1">
+              <RichTextEditor
+                value={formData.notes || ''}
+                onChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+                disabled={!canEdit}
+                placeholder="Add rich text notes with formatting, tables, images, and more..."
+                className="min-h-[200px]"
+              />
+            </div>
           </div>
 
           <div className="flex justify-between pt-4">
