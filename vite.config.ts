@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, splitVendorChunkPlugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    splitVendorChunkPlugin(),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
@@ -20,6 +21,17 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    cssCodeSplit: true,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+      format: {
+        comments: false,
+      }
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -101,6 +113,6 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
   },
 }));
