@@ -23,16 +23,81 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Vendor chunk for core React libraries
+          // Core React libraries
           vendor: ['react', 'react-dom'],
-          // UI chunk for heavy UI libraries
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-dropdown-menu'],
-          // Rich text editor chunk
-          editor: ['react-quill'],
-          // Supabase chunk
-          supabase: ['@supabase/supabase-js'],
-          // Query chunk
+          
+          // Router chunk
+          router: ['react-router-dom'],
+          
+          // Query and state management
           query: ['@tanstack/react-query'],
+          
+          // Form libraries
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          
+          // Date utilities
+          dates: ['date-fns', 'react-day-picker'],
+          
+          // Radix UI Core components
+          'radix-core': [
+            '@radix-ui/react-slot',
+            '@radix-ui/react-primitive',
+            '@radix-ui/react-portal',
+            '@radix-ui/react-focus-scope',
+            '@radix-ui/react-dismissable-layer'
+          ],
+          
+          // Radix UI Dialog components
+          'radix-dialog': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-hover-card'
+          ],
+          
+          // Radix UI Form components
+          'radix-forms': [
+            '@radix-ui/react-select',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-radio-group',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-slider',
+            '@radix-ui/react-tabs'
+          ],
+          
+          // Radix UI Navigation
+          'radix-nav': [
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-context-menu',
+            '@radix-ui/react-menubar',
+            '@radix-ui/react-navigation-menu',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-collapsible'
+          ],
+          
+          // Charts and visualization
+          charts: ['recharts'],
+          
+          // Rich text editor
+          editor: ['react-quill'],
+          
+          // Backend services
+          supabase: ['@supabase/supabase-js'],
+          
+          // Icons and styling
+          icons: ['lucide-react'],
+          
+          // Utility libraries
+          utils: [
+            'clsx',
+            'tailwind-merge',
+            'class-variance-authority',
+            'cmdk',
+            'sonner',
+            'vaul',
+            'next-themes'
+          ]
         }
       }
     },
