@@ -19,4 +19,23 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunk for core React libraries
+          vendor: ['react', 'react-dom'],
+          // UI chunk for heavy UI libraries
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-dropdown-menu'],
+          // Rich text editor chunk
+          editor: ['react-quill'],
+          // Supabase chunk
+          supabase: ['@supabase/supabase-js'],
+          // Query chunk
+          query: ['@tanstack/react-query'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 }));

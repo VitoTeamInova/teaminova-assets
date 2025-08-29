@@ -1,7 +1,9 @@
-import React, { useMemo, useEffect } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import React, { useMemo, useEffect, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
+
+// Code-split ReactQuill to reduce bundle size
+const ReactQuill = lazy(() => import('react-quill'));
+const QuillStyles = lazy(() => import('react-quill/dist/quill.snow.css').then(() => ({ default: () => null })));
 
 interface RichTextEditorProps {
   value: string;
@@ -128,15 +130,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   return (
     <div className={cn("rich-text-editor", className)} data-disabled={disabled}>
-      <ReactQuill
-        theme="snow"
-        value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
-        readOnly={disabled}
-      />
+      <Suspense fallback={<div className="min-h-[150px] border rounded flex items-center justify-center">Loading editor...</div>}>
+        <QuillStyles />
+        <ReactQuill
+          theme="snow"
+          value={value}
+          onChange={onChange}
+          modules={modules}
+          formats={formats}
+          placeholder={placeholder}
+          readOnly={disabled}
+        />
+      </Suspense>
     </div>
   );
 };
