@@ -44,14 +44,16 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
   const filteredAndSortedAssets = useMemo(() => {
     let filtered = assets.filter((asset) =>
       asset.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.collection.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (asset.description || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (jumpToChar) {
       const jumpField = view === "author" ? "authorName" : 
-                      view === "category" ? "category" : "assetName";
+                      view === "category" ? "category" : 
+                      view === "collection" ? "collection" : "assetName";
       filtered = filtered.filter((asset) =>
         asset[jumpField].toLowerCase().startsWith(jumpToChar.toLowerCase())
       );
@@ -86,6 +88,16 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           groups[category] = [];
         }
         groups[category].push(asset);
+      });
+      return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+    } else if (view === "collection") {
+      const groups: { [key: string]: Asset[] } = {};
+      filteredAndSortedAssets.forEach((asset) => {
+        const collection = asset.collection || "Uncategorized";
+        if (!groups[collection]) {
+          groups[collection] = [];
+        }
+        groups[collection].push(asset);
       });
       return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
     } else if (view === "author") {
@@ -123,7 +135,7 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
       key={asset.id}
       onClick={() => onAssetSelect(asset)}
       className={cn(
-        "grid grid-cols-4 gap-4 p-3 hover:bg-muted/50 cursor-pointer border-b border-border",
+        "grid grid-cols-5 gap-4 p-3 hover:bg-muted/50 cursor-pointer border-b border-border",
         index % 2 === 0 ? "bg-accent/10" : "bg-muted/20"
       )}
     >
@@ -131,6 +143,7 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
         <>
           <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
           <div className="font-medium">{asset.assetName}</div>
+          <div className="text-sm text-muted-foreground">{asset.collection}</div>
           <div className="text-sm text-muted-foreground">{asset.authorName}</div>
           <div className="text-sm">{asset.category}</div>
         </>
@@ -140,7 +153,17 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           <div className="text-sm">{asset.category}</div>
           <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
           <div className="font-medium">{asset.assetName}</div>
+          <div className="text-sm text-muted-foreground">{asset.collection}</div>
           <div className="text-sm text-muted-foreground">{asset.authorName}</div>
+        </>
+      )}
+      {view === "collection" && (
+        <>
+          <div className="text-sm">{asset.collection}</div>
+          <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
+          <div className="font-medium">{asset.assetName}</div>
+          <div className="text-sm text-muted-foreground">{asset.authorName}</div>
+          <div className="text-sm">{asset.category}</div>
         </>
       )}
       {view === "author" && (
@@ -148,6 +171,7 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           <div className="text-sm text-muted-foreground">{asset.authorName}</div>
           <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
           <div className="font-medium">{asset.assetName}</div>
+          <div className="text-sm text-muted-foreground">{asset.collection}</div>
           <div className="text-sm">{asset.category}</div>
         </>
       )}
@@ -189,11 +213,12 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
       <Card>
         <CardContent className="p-0">
           {/* Headers */}
-          <div className="grid grid-cols-4 gap-4 p-3 bg-muted/30 border-b border-border font-medium text-sm">
+          <div className="grid grid-cols-5 gap-4 p-3 bg-muted/30 border-b border-border font-medium text-sm">
             {view === "date" && (
               <>
                 <SortButton field="dateCreated">Date Created</SortButton>
                 <SortButton field="assetName">Asset Name</SortButton>
+                <div className="font-medium">Collection</div>
                 <SortButton field="authorName">Author Name</SortButton>
                 <SortButton field="category">Category</SortButton>
               </>
@@ -203,7 +228,17 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
                 <SortButton field="category">Category</SortButton>
                 <SortButton field="dateCreated">Date Created</SortButton>
                 <SortButton field="assetName">Asset Name</SortButton>
+                <div className="font-medium">Collection</div>
                 <SortButton field="authorName">Author Name</SortButton>
+              </>
+            )}
+            {view === "collection" && (
+              <>
+                <div className="font-medium">Collection</div>
+                <SortButton field="dateCreated">Date Created</SortButton>
+                <SortButton field="assetName">Asset Name</SortButton>
+                <SortButton field="authorName">Author Name</SortButton>
+                <SortButton field="category">Category</SortButton>
               </>
             )}
             {view === "author" && (
@@ -211,6 +246,7 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
                 <SortButton field="authorName">Author Name</SortButton>
                 <SortButton field="dateCreated">Date Created</SortButton>
                 <SortButton field="assetName">Asset Name</SortButton>
+                <div className="font-medium">Collection</div>
                 <SortButton field="category">Category</SortButton>
               </>
             )}
@@ -222,7 +258,7 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
               <AssetRow key={asset.id} asset={asset} index={index} />
             ))}
 
-            {(view === "category" || view === "author") && groupedAssets?.map(([groupName, groupAssets]) => {
+            {(view === "category" || view === "collection" || view === "author") && groupedAssets?.map(([groupName, groupAssets]) => {
               const isExpanded = expandedCategories.has(groupName);
               return (
                 <div key={groupName}>

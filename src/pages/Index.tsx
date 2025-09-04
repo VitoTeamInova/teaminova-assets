@@ -23,6 +23,7 @@ const Index = () => {
     appName: "TeamInova Assets",
     logoUrl: "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png",
     defaultCategories: ["Documents", "Images", "Videos", "Templates", "Reports"],
+    defaultCollections: ["Project Alpha", "Marketing", "Development", "Research", "General"],
     authorsList: ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson", "David Brown"]
   });
 
@@ -99,6 +100,7 @@ const Index = () => {
         onSave={handleSaveAsset}
         onDelete={handleDeleteAsset}
         defaultCategories={settings.defaultCategories}
+        defaultCollections={settings.defaultCollections}
         authorsList={settings.authorsList}
         logoUrl={settings.logoUrl || "/lovable-uploads/2bea61c1-dc26-490f-a7d0-d31f03dc0406.png"}
         defaultAuthorName={profile?.full_name || "User"}
@@ -107,6 +109,14 @@ const Index = () => {
             setSettings(prev => ({
               ...prev,
               defaultCategories: [...prev.defaultCategories, category]
+            }));
+          }
+        }}
+        onAddNewCollection={(collection) => {
+          if (!settings.defaultCollections.includes(collection)) {
+            setSettings(prev => ({
+              ...prev,
+              defaultCollections: [...prev.defaultCollections, collection]
             }));
           }
         }}

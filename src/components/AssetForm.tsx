@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export interface Asset {
   id?: string;
   assetName: string;
+  collection: string;
   authorName: string;
   dateCreated: string;
   category: string;
@@ -28,10 +29,12 @@ interface AssetFormProps {
   onSave: (asset: Asset) => void;
   onDelete?: (id: string) => void;
   defaultCategories: string[];
+  defaultCollections: string[];
   authorsList: string[];
   logoUrl?: string;
   defaultAuthorName?: string;
   onAddNewCategory?: (category: string) => void;
+  onAddNewCollection?: (collection: string) => void;
   onAddNewAuthor?: (author: string) => void;
 }
 
@@ -41,15 +44,18 @@ export function AssetForm({
   onClose, 
   onSave, 
   onDelete, 
-  defaultCategories, 
+  defaultCategories,
+  defaultCollections,
   authorsList,
   logoUrl,
   defaultAuthorName,
   onAddNewCategory,
+  onAddNewCollection,
   onAddNewAuthor
 }: AssetFormProps) {
   const [formData, setFormData] = useState<Asset>({
     assetName: "",
+    collection: "",
     authorName: "",
     dateCreated: new Date().toISOString(),
     category: "",
@@ -68,6 +74,7 @@ export function AssetForm({
     } else {
       setFormData({
         assetName: "",
+        collection: "",
         authorName: defaultAuthorName || "",
         dateCreated: new Date().toISOString(),
         category: "",
@@ -80,10 +87,10 @@ export function AssetForm({
   }, [asset, defaultAuthorName]);
 
   const handleSave = () => {
-    if (!formData.assetName.trim() || !formData.authorName.trim()) {
+    if (!formData.assetName.trim() || !formData.collection.trim() || !formData.authorName.trim() || !formData.category.trim()) {
       toast({
         title: "Validation Error",
-        description: "Asset Name and Author Name are required.",
+        description: "Asset Name, Collection, Author Name, and Category are required.",
         variant: "destructive",
       });
       return;
@@ -127,7 +134,7 @@ export function AssetForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[95vh] overflow-y-auto">
         <CardHeader className="bg-accent/20 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -161,52 +168,73 @@ export function AssetForm({
           </div>
 
           <div>
-            <Label htmlFor="authorName">Author Name *</Label>
+            <Label htmlFor="collection">Collection *</Label>
             <Combobox
-              options={authorsList}
-              value={formData.authorName}
+              options={defaultCollections}
+              value={formData.collection}
               onValueChange={(value) => {
-                setFormData(prev => ({ ...prev, authorName: value }));
-                // If it's a new author, add it to the list
-                if (value && !authorsList.includes(value) && onAddNewAuthor) {
-                  onAddNewAuthor(value);
+                setFormData(prev => ({ ...prev, collection: value }));
+                // If it's a new collection, add it to the list
+                if (value && !defaultCollections.includes(value) && onAddNewCollection) {
+                  onAddNewCollection(value);
                 }
               }}
-              placeholder="Select or enter author name"
-              searchPlaceholder="Search authors..."
+              placeholder="Select or enter collection"
+              searchPlaceholder="Search collections..."
               disabled={!canEdit}
               className="mt-1 w-full"
             />
           </div>
 
-          <div>
-            <Label htmlFor="dateCreated">Date Created</Label>
-            <Input
-              id="dateCreated"
-              type="datetime-local"
-              value={formData.dateCreated.slice(0, 16)}
-              disabled
-              className="mt-1"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="dateCreated">Date Created</Label>
+              <Input
+                id="dateCreated"
+                type="datetime-local"
+                value={formData.dateCreated.slice(0, 16)}
+                disabled
+                className="mt-1"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Combobox
-              options={defaultCategories}
-              value={formData.category}
-              onValueChange={(value) => {
-                setFormData(prev => ({ ...prev, category: value }));
-                // If it's a new category, add it to the list
-                if (value && !defaultCategories.includes(value) && onAddNewCategory) {
-                  onAddNewCategory(value);
-                }
-              }}
-              placeholder="Select or enter category"
-              searchPlaceholder="Search categories..."
-              disabled={!canEdit}
-              className="mt-1 w-full"
-            />
+            <div>
+              <Label htmlFor="authorName">Author Name *</Label>
+              <Combobox
+                options={authorsList}
+                value={formData.authorName}
+                onValueChange={(value) => {
+                  setFormData(prev => ({ ...prev, authorName: value }));
+                  // If it's a new author, add it to the list
+                  if (value && !authorsList.includes(value) && onAddNewAuthor) {
+                    onAddNewAuthor(value);
+                  }
+                }}
+                placeholder="Select or enter author name"
+                searchPlaceholder="Search authors..."
+                disabled={!canEdit}
+                className="mt-1 w-full"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="category">Category *</Label>
+              <Combobox
+                options={defaultCategories}
+                value={formData.category}
+                onValueChange={(value) => {
+                  setFormData(prev => ({ ...prev, category: value }));
+                  // If it's a new category, add it to the list
+                  if (value && !defaultCategories.includes(value) && onAddNewCategory) {
+                    onAddNewCategory(value);
+                  }
+                }}
+                placeholder="Select or enter category"
+                searchPlaceholder="Search categories..."
+                disabled={!canEdit}
+                className="mt-1 w-full"
+              />
+            </div>
           </div>
 
           <div>
@@ -257,7 +285,8 @@ export function AssetForm({
                 value={formData.notes || ''}
                 onChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
                 disabled={!canEdit}
-                placeholder="Add rich text notes with formatting, tables, images, and more..."
+                showToolbar={canEdit}
+                placeholder="Add rich text notes with formatting and more..."
                 className="min-h-[200px]"
               />
             </div>

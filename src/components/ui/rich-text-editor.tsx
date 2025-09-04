@@ -9,6 +9,7 @@ interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  showToolbar?: boolean;
   className?: string;
   placeholder?: string;
 }
@@ -17,13 +18,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
   disabled = false,
+  showToolbar = true,
   className,
   placeholder = "Start typing..."
 }) => {
   const modules = useMemo(() => ({
-    toolbar: [
+    toolbar: showToolbar ? [
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'font': [] }],
+      [{ 'font': ['Arial', 'Times New Roman', 'Courier New'] }],
       [{ 'size': ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'color': [] }, { 'background': [] }],
@@ -32,10 +34,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block'],
-      ['link', 'image', 'video'],
+      ['link', 'image'],
       ['clean']
-    ],
-  }), []);
+    ] : false,
+  }), [showToolbar]);
 
   const formats = [
     'header', 'font', 'size',
@@ -61,7 +63,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       
       .rich-text-editor .ql-container {
         border-color: hsl(var(--border));
-        font-family: inherit;
+        font-family: Arial, sans-serif;
         border-radius: 0 0 0.5rem 0.5rem;
       }
       
@@ -69,6 +71,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         min-height: 150px;
         color: hsl(var(--foreground));
         background: hsl(var(--background));
+        font-family: Arial, sans-serif;
+      }
+      
+      .rich-text-editor[data-show-toolbar="false"] .ql-container {
+        border-radius: 0.5rem;
+        border-top: 1px solid hsl(var(--border));
       }
       
       .rich-text-editor .ql-editor.ql-blank::before {
@@ -129,7 +137,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }, []);
 
   return (
-    <div className={cn("rich-text-editor", className)} data-disabled={disabled}>
+    <div className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
       <Suspense fallback={<div className="min-h-[150px] border rounded flex items-center justify-center">Loading editor...</div>}>
         <QuillStyles />
         <ReactQuill

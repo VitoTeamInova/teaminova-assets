@@ -9,6 +9,7 @@ export interface AppSettings {
   appName: string;
   logoUrl: string;
   defaultCategories: string[];
+  defaultCollections: string[];
   authorsList: string[];
 }
 

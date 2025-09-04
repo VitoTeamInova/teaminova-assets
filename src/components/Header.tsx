@@ -18,6 +18,7 @@ interface HeaderProps {
 const menuItems = [
   { id: "date", label: "By Date" },
   { id: "category", label: "By Category" },
+  { id: "collection", label: "By Collection" },
   { id: "author", label: "By Author" },
 ];
 

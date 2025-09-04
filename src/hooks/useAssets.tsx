@@ -7,6 +7,7 @@ export interface DatabaseAsset {
   id: string;
   user_id: string;
   asset_name: string;
+  collection: string;
   author_name: string;
   date_created: string;
   category: string;
@@ -20,6 +21,7 @@ export interface DatabaseAsset {
 export interface Asset {
   id: string;
   assetName: string;
+  collection: string;
   authorName: string;
   dateCreated: string;
   category: string;
@@ -51,9 +53,10 @@ export const useAssets = () => {
       if (error) throw error;
       
       // Convert database format to form format
-      const formattedAssets = (data || []).map((dbAsset: DatabaseAsset) => ({
+      const formattedAssets = (data || []).map((dbAsset: any) => ({
         id: dbAsset.id,
         assetName: dbAsset.asset_name,
+        collection: dbAsset.collection || "",
         authorName: dbAsset.author_name,
         dateCreated: dbAsset.date_created,
         category: dbAsset.category,
@@ -89,6 +92,7 @@ export const useAssets = () => {
           .from("assets")
           .update({
             asset_name: asset.assetName,
+            collection: asset.collection,
             author_name: asset.authorName,
             date_created: asset.dateCreated,
             category: asset.category,
@@ -112,6 +116,7 @@ export const useAssets = () => {
           .insert({
             user_id: user.id,
             asset_name: asset.assetName!,
+            collection: asset.collection!,
             author_name: asset.authorName!,
             date_created: asset.dateCreated!,
             category: asset.category!,
