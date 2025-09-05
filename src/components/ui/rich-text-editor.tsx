@@ -4,6 +4,9 @@ import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import TableUI from 'quill-table-ui';
 import 'quill-table-ui/dist/index.css';
+// @ts-ignore
+import QuillBetterTable from 'quill-better-table';
+import 'quill-better-table/dist/quill-better-table.css';
 
 // Register table module (ESM/CJS safe)
 if (typeof window !== 'undefined') {
@@ -11,11 +14,17 @@ if (typeof window !== 'undefined') {
     // @ts-ignore
     const TableUIModule = (TableUI as any)?.default ?? TableUI;
     // @ts-ignore
-    Quill.register({
-      'modules/tableUI': TableUIModule,
-    }, true);
+    const BetterTableModule = (QuillBetterTable as any)?.default ?? QuillBetterTable;
+    // @ts-ignore
+    Quill.register(
+      {
+        'modules/better-table': BetterTableModule,
+        'modules/tableUI': TableUIModule,
+      },
+      true
+    );
   } catch (error) {
-    console.warn('Failed to register tableUI module:', error);
+    console.warn('Failed to register quill table modules:', error);
   }
 }
 
@@ -40,6 +49,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     toolbar: showToolbar ? [
       [{ 'font': [] }],
       [{ 'size': ['small', false, 'large', 'huge'] }],
+      [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'color': [] }, { 'background': [] }],
       [{ 'script': 'sub' }, { 'script': 'super' }],
@@ -49,10 +59,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       ['blockquote', 'code-block', 'link', 'image'],
       ['clean']
     ] : false,
-    tableUI: true
+    tableUI: true,
+    // @ts-ignore
+    'better-table': {
+    },
+    keyboard: {
+      // @ts-ignore
+      bindings: (QuillBetterTable as any)?.keyboardBindings || {}
+    }
   }), [showToolbar]);
 
   const formats = [
+    'header',
     'font', 'size',
     'bold', 'italic', 'underline', 'strike',
     'color', 'background',
