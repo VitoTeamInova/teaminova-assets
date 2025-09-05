@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import 'quill-better-table/dist/quill-better-table.css';
 
 // Register table module (ESM/CJS safe)
 
@@ -37,7 +38,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           import('quill-better-table') as any,
         ]);
         (QuillNS as any).register({ 'modules/better-table': BetterTable }, true);
-        keyboardBindingsRef.current = (BetterTable as any).keyboardBindings;
         if (!cancelled) setTableReady(true);
       } catch (error) {
         console.warn('Failed to register quill-better-table:', error);
@@ -64,7 +64,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const mods: any = { toolbar };
     if (tableReady) {
       mods['better-table'] = { operationMenu: { enabled: true } };
-      if (keyboardBindingsRef.current) mods.keyboard = { bindings: keyboardBindingsRef.current };
     }
     return mods;
   }, [showToolbar, tableReady]);
