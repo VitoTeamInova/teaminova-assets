@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "@/hooks/use-toast";
+import type { UploadedFile } from "@/hooks/useFileUpload";
 
 export interface DatabaseAsset {
   id: string;
@@ -26,7 +27,7 @@ export interface Asset {
   dateCreated: string;
   category: string;
   description?: string;
-  attachments: any[];
+  attachments: UploadedFile[];
   notes?: string;
 }
 
@@ -61,7 +62,15 @@ export const useAssets = () => {
         dateCreated: dbAsset.date_created,
         category: dbAsset.category,
         description: dbAsset.description || "",
-        attachments: Array.isArray(dbAsset.attachments) ? dbAsset.attachments : [],
+        attachments: (() => {
+          try {
+            return Array.isArray(dbAsset.attachments) 
+              ? dbAsset.attachments 
+              : JSON.parse(dbAsset.attachments || '[]');
+          } catch {
+            return [];
+          }
+        })(),
         notes: dbAsset.notes || "",
       }));
       
@@ -97,7 +106,7 @@ export const useAssets = () => {
             date_created: asset.dateCreated,
             category: asset.category,
             description: asset.description,
-            attachments: asset.attachments,
+            attachments: JSON.stringify(asset.attachments || []),
             notes: asset.notes,
           })
           .eq("id", asset.id)
@@ -121,7 +130,7 @@ export const useAssets = () => {
             date_created: asset.dateCreated!,
             category: asset.category!,
             description: asset.description,
-            attachments: asset.attachments || [],
+            attachments: JSON.stringify(asset.attachments || []),
             notes: asset.notes,
           });
 

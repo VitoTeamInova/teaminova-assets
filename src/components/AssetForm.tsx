@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
-import { X, Save, Edit, Trash2, Upload, FileDown } from "lucide-react";
+import { X, Save, Edit, Trash2, Upload, FileDown, Download, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { exportAssetToPdf } from "@/lib/exportAssetPdf";
+import { useFileUpload, UploadedFile } from "@/hooks/useFileUpload";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface Asset {
   id?: string;
@@ -19,7 +21,7 @@ export interface Asset {
   dateCreated: string;
   category: string;
   description?: string;
-  attachments: File[];
+  attachments: UploadedFile[];
   notes?: string;
 }
 
@@ -54,6 +56,8 @@ export function AssetForm({
   onAddNewCollection,
   onAddNewAuthor
 }: AssetFormProps) {
+  const { user } = useAuth();
+  const { uploadFile, deleteFile, downloadFile, uploading } = useFileUpload();
   const [formData, setFormData] = useState<Asset>({
     assetName: "",
     collection: "",
@@ -129,12 +133,80 @@ export function AssetForm({
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    if (!user) return;
+
+    for (const file of files) {
+      const uploadedFile = await uploadFile(file, user.id);
+      if (uploadedFile) {
+        setFormData(prev => ({
+          ...prev,
+          attachments: [...prev.attachments, uploadedFile]
+        }));
+      }
+    }
+
+    // Clear the input
+    e.target.value = '';
+  };
+
+  const handleFileDelete = async (fileIndex: number) => {
+    const file = formData.attachments[fileIndex];
+    if (file && file.path) {
+      const success = await deleteFile(file.path);
+      if (success) {
+        setFormData(prev => ({
+          ...prev,
+          attachments: prev.attachments.filter((_, index) => index !== fileIndex)
+        }));
+      }
+    }
+  };
+
+  const handleEmbedFile = (file: UploadedFile) => {
+    const isImage = file.type.startsWith('image/');
+    const isExcel = file.type.includes('spreadsheet') || file.type.includes('excel') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+    
+    let embedHtml = '';
+    
+    if (isImage) {
+      embedHtml = `<img src="${file.url}" alt="${file.name}" style="max-width: 100%; height: auto; margin: 10px 0;" />`;
+    } else if (isExcel) {
+      embedHtml = `<div class="attachment-embed" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin: 10px 0; background: #f9f9f9;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">📊</span>
+          <div>
+            <div style="font-weight: bold; color: #333;">${file.name}</div>
+            <div style="font-size: 12px; color: #666;">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+          </div>
+          <a href="${file.url}" target="_blank" style="margin-left: auto; color: #0066cc; text-decoration: none;">↗ Open</a>
+        </div>
+      </div>`;
+    } else {
+      embedHtml = `<div class="attachment-embed" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin: 10px 0; background: #f9f9f9;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">📎</span>
+          <div>
+            <div style="font-weight: bold; color: #333;">${file.name}</div>
+            <div style="font-size: 12px; color: #666;">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+          </div>
+          <a href="${file.url}" target="_blank" style="margin-left: auto; color: #0066cc; text-decoration: none;">↗ Open</a>
+        </div>
+      </div>`;
+    }
+
+    // Add the embed HTML to the notes
+    const currentNotes = formData.notes || '';
     setFormData(prev => ({
       ...prev,
-      attachments: [...prev.attachments, ...files]
+      notes: currentNotes + embedHtml
     }));
+
+    toast({
+      title: "File Embedded",
+      description: `${file.name} has been embedded in the notes section.`
+    });
   };
 
   const hasUnsavedChanges = () => {
@@ -287,20 +359,62 @@ export function AssetForm({
                   onChange={handleFileUpload}
                   className="hidden"
                   id="fileUpload"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar"
                 />
-                <Button variant="outline" asChild>
+                <Button variant="outline" asChild disabled={uploading}>
                   <label htmlFor="fileUpload" className="cursor-pointer">
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload Files
+                    {uploading ? 'Uploading...' : 'Upload Files'}
                   </label>
                 </Button>
               </div>
             )}
             {formData.attachments.length > 0 && (
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 space-y-2">
                 {formData.attachments.map((file, index) => (
-                  <div key={index} className="text-sm text-muted-foreground">
-                    {file.name}
+                  <div key={index} className="flex items-center justify-between p-2 border rounded-md bg-muted/10">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">
+                        {file.type?.startsWith('image/') ? '🖼️' : 
+                         file.type?.includes('spreadsheet') || file.type?.includes('excel') || file.name?.endsWith('.xlsx') || file.name?.endsWith('.xls') ? '📊' :
+                         file.type?.includes('pdf') ? '📄' : '📎'}
+                      </span>
+                      <div>
+                        <div className="text-sm font-medium">{file.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEmbedFile(file)}
+                        title="Embed in Notes"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => window.open(file.url, '_blank')}
+                        title="Open File"
+                      >
+                        <Download className="w-3 h-3" />
+                      </Button>
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFileDelete(index)}
+                          className="text-destructive hover:text-destructive"
+                          title="Delete File"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
