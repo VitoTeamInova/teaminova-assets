@@ -220,77 +220,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     spreadsheetBtn?.addEventListener('click', spreadsheetClickHandler);
 
-    // Add Table button
-    let tableBtn = toolbar.querySelector('button.ql-insertTable') as HTMLButtonElement | null;
-    if (!tableBtn) {
-      const groups = toolbar.querySelectorAll('.ql-formats');
-      const targetGroup = groups[groups.length - 1] || toolbar;
-      tableBtn = document.createElement('button');
-      tableBtn.type = 'button';
-      tableBtn.className = 'ql-insertTable';
-      tableBtn.setAttribute('title', 'Insert table');
-      tableBtn.setAttribute('aria-label', 'Insert table');
-      tableBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
-          <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="2"/>
-          <line x1="3" y1="15" x2="21" y2="15" stroke="currentColor" stroke-width="2"/>
-          <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" stroke-width="2"/>
-          <line x1="15" y1="3" x2="15" y2="21" stroke="currentColor" stroke-width="2"/>
-        </svg>`;
-      targetGroup.appendChild(tableBtn);
-    }
-
-    const clickHandler = (e: Event) => {
-      e.preventDefault();
-      const editor = (quillRef.current as any)?.getEditor?.();
-      if (!editor) return;
-      try {
-        const tableModule = editor.getModule('better-table');
-        if (tableModule?.insertTable) {
-          tableModule.insertTable(3, 3);
-          return;
-        }
-      } catch (err) {
-        console.warn('better-table insert failed, will fallback:', err);
-      }
-      // Fallback: simple 3x3 HTML via clipboard
-      try {
-        const range = editor.getSelection(true);
-        const index = range?.index ?? editor.getLength();
-        const tableHtml = `
-          <table class="qlbt-table" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
-            </tr>
-          </table>
-        `;
-        const delta = editor.clipboard.convert(tableHtml);
-        editor.updateContents(delta, 'user');
-        editor.setSelection(index + delta.length(), 0);
-      } catch (fallbackErr) {
-        console.warn('Clipboard fallback failed, inserting markdown', fallbackErr);
-        const range = editor.getSelection(true);
-        const index = range?.index ?? editor.getLength();
-        const tableText = `\n|   |   |   |\n|---|---|---|\n|   |   |   |\n|   |   |   |\n`;
-        editor.insertText(index, tableText);
-      }
-    };
-
-    tableBtn?.addEventListener('click', clickHandler);
-    return () => tableBtn?.removeEventListener('click', clickHandler);
+    // Remove non-functional Table button if present
+    const existingTableBtn = toolbar.querySelector('button.ql-insertTable') as HTMLButtonElement | null;
+    existingTableBtn?.remove();
   }, [showToolbar]);
 
   return (

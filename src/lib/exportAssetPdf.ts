@@ -1,7 +1,5 @@
 export function exportAssetToPdf(asset: any, options?: { logoUrl?: string }) {
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) return;
-
+  // Build the HTML content (same as before)
   const safe = (v: any) => (v ?? '').toString();
   const formatDate = (iso?: string) => {
     try { return iso ? new Date(iso).toLocaleString() : ''; } catch { return safe(iso); }
@@ -61,10 +59,32 @@ export function exportAssetToPdf(asset: any, options?: { logoUrl?: string }) {
 </body>
 </html>`;
 
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  win.onload = () => {
-    try { win.focus(); win.print(); } catch {}
+  // Print via a hidden iframe (no extra preview window)
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!doc) return;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } finally {
+      // Cleanup after a short delay to allow print dialog to open
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }
   };
 }
