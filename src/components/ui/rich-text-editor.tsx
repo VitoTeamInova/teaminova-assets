@@ -31,48 +31,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     (async () => {
       if (typeof window === 'undefined') return;
       try {
-        // Try to register a simple table module using Quill's built-in capabilities
-        const RQ: any = await import('react-quill');
-        const Quill = (RQ as any).Quill || (ReactQuill as any).Quill;
-        if (Quill) {
-          // Register simple table formats
-          const Block = Quill.import('blots/block');
-          const Container = Quill.import('blots/container');
-          
-          class TableWrapper extends Container {}
-          class TableRow extends Container {}
-          class TableCell extends Block {
-            static create(value: any) {
-              const node = super.create();
-              node.setAttribute('data-row', value.row || '0');
-              node.setAttribute('data-col', value.col || '0');
-              return node;
-            }
-          }
-          
-          TableWrapper.blotName = 'table';
-          TableWrapper.tagName = 'table';
-          TableWrapper.className = 'ql-table';
-          
-          TableRow.blotName = 'table-row';
-          TableRow.tagName = 'tr';
-          TableRow.className = 'ql-table-row';
-          
-          TableCell.blotName = 'table-cell';
-          TableCell.tagName = 'td';
-          TableCell.className = 'ql-table-cell';
-          
-          Quill.register({
-            'formats/table': TableWrapper,
-            'formats/table-row': TableRow,
-            'formats/table-cell': TableCell,
-          }, true);
-          
-          if (!cancelled) setTableReady(true);
-        }
+        const [{ default: QuillNS }, { default: BetterTable }] = await Promise.all([
+          import('quill'),
+          import('quill-better-table') as any,
+        ]);
+        (QuillNS as any).register({ 'modules/better-table': BetterTable }, true);
+        keyboardBindingsRef.current = (BetterTable as any).keyboardBindings;
+        if (!cancelled) setTableReady(true);
       } catch (error) {
-        console.warn('Failed to register table formats:', error);
-        if (!cancelled) setTableReady(true); // Still show button even if registration fails
+        console.warn('Failed to register quill-better-table:', error);
+        if (!cancelled) setTableReady(true);
       }
     })();
     return () => { cancelled = true; };
@@ -92,7 +60,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       ['blockquote', 'code-block', 'link', 'image'],
       ['clean']
     ] : false;
-    return { toolbar };
+    const mods: any = { toolbar };
+    if (tableReady) {
+      mods['better-table'] = { operationMenu: { enabled: true } };
+      if (keyboardBindingsRef.current) mods.keyboard = { bindings: keyboardBindingsRef.current };
+    }
+    return mods;
   }, [showToolbar, tableReady]);
 
   const formats = [
@@ -260,47 +233,45 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       const editor = (quillRef.current as any)?.getEditor?.();
       if (!editor) return;
       try {
-        // Insert a simple HTML table
+        const tableModule = editor.getModule('better-table');
+        if (tableModule?.insertTable) {
+          tableModule.insertTable(3, 3);
+          return;
+        }
+      } catch (err) {
+        console.warn('better-table insert failed, will fallback:', err);
+      }
+      // Fallback: simple 3x3 HTML via clipboard
+      try {
         const range = editor.getSelection(true);
         const index = range?.index ?? editor.getLength();
-        
         const tableHtml = `
-          <table class="ql-table" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
-            <tr class="ql-table-row">
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 1</td>
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 2</td>
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 3</td>
+          <table class="qlbt-table" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
+            <tr>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
             </tr>
-            <tr class="ql-table-row">
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 4</td>
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 5</td>
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 6</td>
+            <tr>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
             </tr>
-            <tr class="ql-table-row">
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 7</td>
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 8</td>
-              <td class="ql-table-cell" style="border: 1px solid #ccc; padding: 8px;">Cell 9</td>
+            <tr>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
+              <td style="border: 1px solid #ccc; padding: 8px;"> </td>
             </tr>
           </table>
         `;
-        
-        // Use clipboard to insert HTML
-        const clipboard = editor.clipboard;
-        const delta = clipboard.convert(tableHtml);
+        const delta = editor.clipboard.convert(tableHtml);
         editor.updateContents(delta, 'user');
         editor.setSelection(index + delta.length(), 0);
-        
-      } catch (err) {
-        console.warn('Insert table failed, using fallback:', err);
-        // Fallback: insert plain text table
+      } catch (fallbackErr) {
+        console.warn('Clipboard fallback failed, inserting markdown', fallbackErr);
         const range = editor.getSelection(true);
         const index = range?.index ?? editor.getLength();
-        const tableText = `
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Cell 1   | Cell 2   | Cell 3   |
-| Cell 4   | Cell 5   | Cell 6   |
-`;
+        const tableText = `\n|   |   |   |\n|---|---|---|\n|   |   |   |\n|   |   |   |\n`;
         editor.insertText(index, tableText);
       }
     };
