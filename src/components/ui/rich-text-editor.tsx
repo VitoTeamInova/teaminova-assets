@@ -10,7 +10,9 @@ if (typeof window !== 'undefined') {
   // @ts-ignore
   const TableUIModule = (TableUI as any)?.default ?? TableUI;
   // @ts-ignore
-  Quill.register('modules/tableUI', TableUIModule);
+  Quill.register({
+    'modules/tableUI': TableUIModule,
+  });
 }
 
 interface RichTextEditorProps {
@@ -41,7 +43,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
-      [{ 'table': 'TD' }],
+      ['table', 'table-col-add', 'table-row-add', 'table-col-remove', 'table-row-remove'],
       ['clean']
     ] : false,
     tableUI: true

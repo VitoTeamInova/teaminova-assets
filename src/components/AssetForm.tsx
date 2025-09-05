@@ -65,14 +65,25 @@ export function AssetForm({
   });
   const [isEditing, setIsEditing] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [initialFormData, setInitialFormData] = useState<Asset>({
+    assetName: "",
+    collection: "",
+    authorName: "",
+    dateCreated: new Date().toISOString(),
+    category: "",
+    description: "",
+    attachments: [],
+    notes: "",
+  });
   const { toast } = useToast();
 
   useEffect(() => {
     if (asset) {
       setFormData(asset);
+      setInitialFormData(asset);
       setIsEditing(false);
     } else {
-      setFormData({
+      const newFormData = {
         assetName: "",
         collection: "",
         authorName: defaultAuthorName || "",
@@ -81,7 +92,9 @@ export function AssetForm({
         description: "",
         attachments: [],
         notes: "",
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
       setIsEditing(true);
     }
   }, [asset, defaultAuthorName]);
@@ -123,6 +136,21 @@ export function AssetForm({
     }));
   };
 
+  const hasUnsavedChanges = () => {
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  };
+
+  const handleClose = () => {
+    if (hasUnsavedChanges() && canEdit) {
+      // Show confirmation dialog
+      const confirmClose = window.confirm("You have unsaved changes. Are you sure you want to exit without saving?");
+      if (!confirmClose) {
+        return;
+      }
+    }
+    onClose();
+  };
+
   const handleCategorySelect = (value: string) => {
     setFormData(prev => ({ ...prev, category: value }));
   };
@@ -149,7 +177,7 @@ export function AssetForm({
                 {isNewAsset ? "New Asset" : isEditing ? "Edit Asset" : "Asset Details"}
               </CardTitle>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={handleClose}>
               <X className="w-4 h-4" />
             </Button>
           </div>
@@ -325,6 +353,11 @@ export function AssetForm({
                   </AlertDialogContent>
                 </AlertDialog>
               )}
+              
+              <Button variant="outline" onClick={handleClose}>
+                <X className="w-4 h-4 mr-2" />
+                Close
+              </Button>
               
               {canEdit && (
                 <Button onClick={handleSave}>
