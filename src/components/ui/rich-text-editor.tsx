@@ -128,16 +128,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    console.log('[RichTextEditor] disabled:', disabled, 'showToolbar:', showToolbar);
+  }, [disabled, showToolbar]);
+
   return (
     <div className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
       <ReactQuill
+        key={`${disabled}-${showToolbar}`}
         theme="snow"
         value={value}
         onChange={onChange}
         modules={modules}
         formats={formats}
         placeholder={placeholder}
-        readOnly={disabled}
+        readOnly={!!disabled}
       />
     </div>
   );
