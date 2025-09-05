@@ -22,6 +22,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const modules = useMemo(() => ({
     toolbar: showToolbar ? [
+      [{ 'font': [] }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'color': [] }, { 'background': [] }],
       [{ 'script': 'sub' }, { 'script': 'super' }],
@@ -29,11 +31,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
+      ['table'],
       ['clean']
     ] : false
   }), [showToolbar]);
 
   const formats = [
+    'font', 'size',
     'bold', 'italic', 'underline', 'strike',
     'color', 'background',
     'script',
@@ -41,7 +45,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'indent',
     'align',
     'blockquote', 'code-block',
-    'link', 'image'
+    'link', 'image', 'table'
   ];
 
   useEffect(() => {
