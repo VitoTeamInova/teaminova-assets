@@ -6,10 +6,8 @@ import { AppSettings } from "@/components/Settings";
 import { AuthForm } from "@/components/AuthForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { useAssets, Asset } from "@/hooks/useAssets";
-import { Asset as FormAsset } from "@/components/AssetForm";
-import { Button } from "@/components/ui/button";
-import { User } from "@supabase/supabase-js";
+import { useAssets } from "@/hooks/useAssets";
+import type { Asset as FormAsset } from "@/components/AssetForm";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
