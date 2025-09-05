@@ -43,9 +43,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
-      ['table', 'table-col-add', 'table-row-add', 'table-col-remove', 'table-row-remove'],
       ['clean']
     ] : false,
+    table: true,
     tableUI: true
   }), [showToolbar]);
 
