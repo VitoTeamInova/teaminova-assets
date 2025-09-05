@@ -35,7 +35,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
-      ['clean']
+      ['clean'],
+      [{ 'spreadsheet': 'Insert Spreadsheet' }]
     ] : false;
     return { toolbar };
   }, [showToolbar]);
@@ -176,6 +177,48 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     setLabel('button.ql-link', 'Insert link');
     setLabel('button.ql-image', 'Insert image');
     setLabel('button.ql-clean', 'Clear formatting');
+
+    // Add Spreadsheet button
+    let spreadsheetBtn = toolbar.querySelector('button.ql-spreadsheet') as HTMLButtonElement | null;
+    if (!spreadsheetBtn) {
+      const groups = toolbar.querySelectorAll('.ql-formats');
+      const targetGroup = groups[groups.length - 1] || toolbar;
+      spreadsheetBtn = document.createElement('button');
+      spreadsheetBtn.type = 'button';
+      spreadsheetBtn.className = 'ql-spreadsheet';
+      spreadsheetBtn.setAttribute('title', 'Insert spreadsheet');
+      spreadsheetBtn.setAttribute('aria-label', 'Insert spreadsheet');
+      spreadsheetBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" rx="2"/>
+          <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" stroke-width="1"/>
+          <line x1="15" y1="3" x2="15" y2="21" stroke="currentColor" stroke-width="1"/>
+          <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="1"/>
+          <line x1="3" y1="15" x2="21" y2="15" stroke="currentColor" stroke-width="1"/>
+        </svg>`;
+      targetGroup.appendChild(spreadsheetBtn);
+    }
+
+    const spreadsheetClickHandler = (e: Event) => {
+      e.preventDefault();
+      const editor = (quillRef.current as any)?.getEditor?.();
+      if (!editor) return;
+      
+      // Insert a placeholder for spreadsheet
+      const range = editor.getSelection(true);
+      const index = range?.index ?? editor.getLength();
+      const spreadsheetHtml = `
+        <div class="spreadsheet-placeholder" style="border: 2px dashed #ccc; padding: 20px; margin: 10px 0; text-align: center; background: #f9f9f9; border-radius: 8px;">
+          <p style="margin: 0; color: #666; font-style: italic;">📊 Spreadsheet Component</p>
+          <p style="margin: 5px 0 0 0; font-size: 12px; color: #999;">Click to edit or paste Excel data</p>
+        </div>
+      `;
+      const delta = editor.clipboard.convert(spreadsheetHtml);
+      editor.updateContents(delta, 'user');
+      editor.setSelection(index + delta.length(), 0);
+    };
+
+    spreadsheetBtn?.addEventListener('click', spreadsheetClickHandler);
 
     // Add Table button
     let tableBtn = toolbar.querySelector('button.ql-insertTable') as HTMLButtonElement | null;
