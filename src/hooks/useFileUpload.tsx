@@ -36,17 +36,21 @@ export function useFileUpload() {
         throw uploadError;
       }
 
-      // Get public URL for the uploaded file
-      const { data: urlData } = supabase.storage
+      // Get signed URL for private bucket access (24 hour expiry)
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('attachments')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 86400); // 24 hours
+
+      if (urlError) {
+        throw urlError;
+      }
 
       return {
         id: crypto.randomUUID(),
         name: file.name,
         size: file.size,
         type: file.type,
-        url: urlData.publicUrl,
+        url: urlData.signedUrl,
         path: filePath
       };
 
