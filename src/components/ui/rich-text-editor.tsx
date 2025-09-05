@@ -7,12 +7,16 @@ import 'quill-table-ui/dist/index.css';
 
 // Register table module (ESM/CJS safe)
 if (typeof window !== 'undefined') {
-  // @ts-ignore
-  const TableUIModule = (TableUI as any)?.default ?? TableUI;
-  // @ts-ignore
-  Quill.register({
-    'modules/tableUI': TableUIModule,
-  });
+  try {
+    // @ts-ignore
+    const TableUIModule = (TableUI as any)?.default ?? TableUI;
+    // @ts-ignore
+    Quill.register({
+      'modules/tableUI': TableUIModule,
+    }, true);
+  } catch (error) {
+    console.warn('Failed to register tableUI module:', error);
+  }
 }
 
 interface RichTextEditorProps {
@@ -45,7 +49,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       ['blockquote', 'code-block', 'link', 'image'],
       ['clean']
     ] : false,
-    table: true,
     tableUI: true
   }), [showToolbar]);
 
