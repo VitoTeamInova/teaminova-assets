@@ -25,6 +25,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<ReactQuill | null>(null);
   const [tableReady, setTableReady] = useState(false);
+  const keyboardBindingsRef = useRef<any>(null);
 
   useEffect(() => {
     let cancelled = false;
