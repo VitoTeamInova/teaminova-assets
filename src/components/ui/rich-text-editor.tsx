@@ -26,6 +26,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<ReactQuill | null>(null);
   const [tableReady, setTableReady] = useState(false);
+  const [tablePluginAvailable, setTablePluginAvailable] = useState(false);
   const keyboardBindingsRef = useRef<any>(null);
 
   useEffect(() => {
@@ -37,10 +38,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           import('quill'),
           import('quill-better-table') as any,
         ]);
-        (QuillNS as any).register({ 'modules/better-table': BetterTable }, true);
+        const quillVersion: string | undefined = (QuillNS as any).version;
+        const isV1 = !quillVersion || quillVersion.startsWith('1.');
+        if (isV1) {
+          (QuillNS as any).register({ 'modules/better-table': BetterTable }, true);
+          setTablePluginAvailable(true);
+        } else {
+          console.warn('Quill v2 detected; skipping quill-better-table registration.');
+          setTablePluginAvailable(false);
+        }
         if (!cancelled) setTableReady(true);
       } catch (error) {
         console.warn('Failed to register quill-better-table:', error);
+        setTablePluginAvailable(false);
         if (!cancelled) setTableReady(true);
       }
     })();
@@ -62,11 +72,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       ['clean']
     ] : false;
     const mods: any = { toolbar };
-    if (tableReady) {
+    if (tablePluginAvailable) {
       mods['better-table'] = { operationMenu: { enabled: true } };
     }
     return mods;
-  }, [showToolbar, tableReady]);
+  }, [showToolbar, tablePluginAvailable]);
 
   const formats = [
     'header',
@@ -284,7 +294,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     <div ref={containerRef} className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
       <ReactQuill
         ref={quillRef as any}
-        key={`${disabled}-${showToolbar}-${tableReady}`}
+        key={`${disabled}-${showToolbar}-${tableReady}-${tablePluginAvailable}`}
         theme="snow"
         value={value}
         onChange={onChange}
