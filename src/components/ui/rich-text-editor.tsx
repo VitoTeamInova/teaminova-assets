@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -22,8 +22,34 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   className,
   placeholder = "Start typing..."
 }) => {
-  const modules = useMemo(() => ({
-    toolbar: showToolbar ? [
+  const containerRef = useRef<HTMLDivElement>(null);
+  const quillRef = useRef<ReactQuill | null>(null);
+  const [tableReady, setTableReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (typeof window === 'undefined') return;
+      try {
+        const [{ default: QuillBetterTable }] = await Promise.all([
+          import('quill-better-table'),
+          import('quill-better-table/dist/quill-better-table.css')
+        ]);
+        const RQ: any = await import('react-quill');
+        const Quill = (RQ as any).Quill || (ReactQuill as any).Quill;
+        if (Quill && QuillBetterTable) {
+          Quill.register({ 'modules/better-table': QuillBetterTable }, true);
+          if (!cancelled) setTableReady(true);
+        }
+      } catch (error) {
+        console.warn('Failed to register quill-better-table:', error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const modules = useMemo(() => {
+    const toolbar = showToolbar ? [
       [{ 'font': [] }],
       [{ 'size': ['small', false, 'large', 'huge'] }],
       [{ 'header': [1, 2, 3, false] }],
@@ -35,8 +61,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
       ['clean']
-    ] : false
-  }), [showToolbar]);
+    ] : false;
+    const m: any = { toolbar };
+    if (tableReady) m['better-table'] = {};
+    return m;
+  }, [showToolbar, tableReady]);
 
   const formats = [
     'header',
@@ -48,7 +77,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'indent',
     'align',
     'blockquote', 'code-block',
-    'link', 'image'
+    'link', 'image',
+    // Table formats (quill-better-table)
+    'table', 'table-row', 'table-cell', 'table-col'
   ];
 
   useEffect(() => {
@@ -140,10 +171,88 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     console.log('[RichTextEditor] disabled:', disabled, 'showToolbar:', showToolbar);
   }, [disabled, showToolbar]);
 
+  useEffect(() => {
+    if (!showToolbar) return;
+    const root = containerRef.current;
+    const toolbar = root?.querySelector('.ql-toolbar') as HTMLElement | null;
+    if (!toolbar) return;
+
+    const setLabel = (selector: string, label: string) => {
+      const el = toolbar.querySelector(selector) as HTMLElement | null;
+      if (!el) return;
+      el.setAttribute('title', label);
+      el.setAttribute('aria-label', label);
+    };
+
+    setLabel('button.ql-bold', 'Bold');
+    setLabel('button.ql-italic', 'Italic');
+    setLabel('button.ql-underline', 'Underline');
+    setLabel('button.ql-strike', 'Strikethrough');
+    setLabel('.ql-picker.ql-font', 'Font');
+    setLabel('.ql-picker.ql-size', 'Text size');
+    setLabel('.ql-picker.ql-header', 'Headings (H1–H3)');
+    setLabel('button.ql-color', 'Text color');
+    setLabel('button.ql-background', 'Highlight color');
+    setLabel('button.ql-script[value="sub"]', 'Subscript');
+    setLabel('button.ql-script[value="super"]', 'Superscript');
+    setLabel('button.ql-list[value="ordered"]', 'Ordered list');
+    setLabel('button.ql-list[value="bullet"]', 'Bulleted list');
+    setLabel('button.ql-indent[value="-1"]', 'Indent less');
+    setLabel('button.ql-indent[value="+1"]', 'Indent more');
+    setLabel('.ql-picker.ql-align', 'Align');
+    setLabel('button.ql-blockquote', 'Blockquote');
+    setLabel('button.ql-code-block', 'Code block');
+    setLabel('button.ql-link', 'Insert link');
+    setLabel('button.ql-image', 'Insert image');
+    setLabel('button.ql-clean', 'Clear formatting');
+
+    // Add Table button
+    let tableBtn = toolbar.querySelector('button.ql-insertTable') as HTMLButtonElement | null;
+    if (!tableBtn) {
+      const groups = toolbar.querySelectorAll('.ql-formats');
+      const targetGroup = groups[groups.length - 1] || toolbar;
+      tableBtn = document.createElement('button');
+      tableBtn.type = 'button';
+      tableBtn.className = 'ql-insertTable';
+      tableBtn.setAttribute('title', 'Insert table');
+      tableBtn.setAttribute('aria-label', 'Insert table');
+      tableBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
+          <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="2"/>
+          <line x1="3" y1="15" x2="21" y2="15" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" stroke-width="2"/>
+          <line x1="15" y1="3" x2="15" y2="21" stroke="currentColor" stroke-width="2"/>
+        </svg>`;
+      targetGroup.appendChild(tableBtn);
+    }
+
+    const clickHandler = (e: Event) => {
+      e.preventDefault();
+      const editor = (quillRef.current as any)?.getEditor?.();
+      if (!editor) return;
+      try {
+        const betterTable = editor.getModule('better-table');
+        if (betterTable?.insertTable) {
+          betterTable.insertTable(3, 3);
+        } else {
+          const range = editor.getSelection(true);
+          editor.insertText(range?.index ?? editor.getLength(), '\n[Table not available]\n');
+        }
+      } catch (err) {
+        console.warn('Insert table failed:', err);
+      }
+    };
+
+    tableBtn?.addEventListener('click', clickHandler);
+    return () => tableBtn?.removeEventListener('click', clickHandler);
+  }, [showToolbar, tableReady]);
+
   return (
-    <div className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
+    <div ref={containerRef} className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
       <ReactQuill
-        key={`${disabled}-${showToolbar}`}
+        ref={quillRef as any}
+        key={`${disabled}-${showToolbar}-${tableReady}`}
         theme="snow"
         value={value}
         onChange={onChange}

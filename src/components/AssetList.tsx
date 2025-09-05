@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, SortAsc, SortDesc, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, SortAsc, SortDesc, ChevronDown, ChevronRight, FileDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Asset } from "./AssetForm";
 import { cn } from "@/lib/utils";
+import { exportAssetToPdf } from "@/lib/exportAssetPdf";
 
 interface AssetListProps {
   assets: Asset[];
@@ -145,7 +146,17 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           <div className="font-medium">{asset.assetName}</div>
           <div className="text-sm text-muted-foreground">{asset.collection}</div>
           <div className="text-sm text-muted-foreground">{asset.authorName}</div>
-          <div className="text-sm">{asset.category}</div>
+          <div className="text-sm flex items-center justify-between">
+            <span>{asset.category}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Export as PDF"
+              onClick={(e) => { e.stopPropagation(); exportAssetToPdf(asset); }}
+            >
+              <FileDown className="w-4 h-4" />
+            </Button>
+          </div>
         </>
       )}
       {view === "category" && (
@@ -154,7 +165,17 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
           <div className="font-medium">{asset.assetName}</div>
           <div className="text-sm text-muted-foreground">{asset.collection}</div>
-          <div className="text-sm text-muted-foreground">{asset.authorName}</div>
+          <div className="text-sm text-muted-foreground flex items-center justify-between">
+            <span>{asset.authorName}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Export as PDF"
+              onClick={(e) => { e.stopPropagation(); exportAssetToPdf(asset); }}
+            >
+              <FileDown className="w-4 h-4" />
+            </Button>
+          </div>
         </>
       )}
       {view === "collection" && (
@@ -163,7 +184,17 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
           <div className="font-medium">{asset.assetName}</div>
           <div className="text-sm text-muted-foreground">{asset.authorName}</div>
-          <div className="text-sm">{asset.category}</div>
+          <div className="text-sm flex items-center justify-between">
+            <span>{asset.category}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Export as PDF"
+              onClick={(e) => { e.stopPropagation(); exportAssetToPdf(asset); }}
+            >
+              <FileDown className="w-4 h-4" />
+            </Button>
+          </div>
         </>
       )}
       {view === "author" && (
@@ -172,7 +203,17 @@ export function AssetList({ assets, view, onAssetSelect }: AssetListProps) {
           <div className="text-sm">{new Date(asset.dateCreated).toLocaleDateString()}</div>
           <div className="font-medium">{asset.assetName}</div>
           <div className="text-sm text-muted-foreground">{asset.collection}</div>
-          <div className="text-sm">{asset.category}</div>
+          <div className="text-sm flex items-center justify-between">
+            <span>{asset.category}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Export as PDF"
+              onClick={(e) => { e.stopPropagation(); exportAssetToPdf(asset); }}
+            >
+              <FileDown className="w-4 h-4" />
+            </Button>
+          </div>
         </>
       )}
     </div>

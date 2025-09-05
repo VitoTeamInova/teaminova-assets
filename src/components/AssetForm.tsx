@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
-import { X, Save, Edit, Trash2, Upload } from "lucide-react";
+import { X, Save, Edit, Trash2, Upload, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { exportAssetToPdf } from "@/lib/exportAssetPdf";
 
 export interface Asset {
   id?: string;
@@ -354,6 +355,11 @@ export function AssetForm({
                 </AlertDialog>
               )}
               
+              <Button variant="outline" onClick={() => exportAssetToPdf(formData, { logoUrl })} title="Export as PDF">
+                <FileDown className="w-4 h-4 mr-2" />
+                Export PDF
+              </Button>
+
               <Button variant="outline" onClick={handleClose}>
                 <X className="w-4 h-4 mr-2" />
                 Close
