@@ -1,7 +1,12 @@
 import React, { useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import ReactQuill from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import 'quill-table-ui/dist/index.css';
+
+// Register table module
+const TableUI = require('quill-table-ui');
+Quill.register('modules/tableUI', TableUI.default);
 
 interface RichTextEditorProps {
   value: string;
@@ -31,9 +36,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
-      ['table'],
+      [{ 'table': 'TD' }],
       ['clean']
-    ] : false
+    ] : false,
+    tableUI: true
   }), [showToolbar]);
 
   const formats = [
@@ -45,7 +51,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'indent',
     'align',
     'blockquote', 'code-block',
-    'link', 'image', 'table'
+    'link', 'image', 'table', 'table-col', 'table-row', 'table-cell'
   ];
 
   useEffect(() => {
