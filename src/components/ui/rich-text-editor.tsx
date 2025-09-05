@@ -1,18 +1,7 @@
-import React, { useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import ReactQuill, { Quill } from 'react-quill';
+import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { Button } from '@/components/ui/button';
-import QuillBetterTable from 'quill-better-table';
-import 'quill-better-table/dist/quill-better-table.css';
-
-// Register Better Table and disable default table module
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Quill.register('modules/better-table', QuillBetterTable);
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-Quill.register('modules/table', false);
 
 interface RichTextEditorProps {
   value: string;
@@ -41,16 +30,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'align': [] }],
       ['blockquote', 'code-block', 'link', 'image'],
       ['clean']
-    ] : false,
-    'better-table': {
-      operationMenu: {
-        items: {
-          unmergeCells: {
-            text: 'Unmerge cells'
-          }
-        }
-      }
-    }
+    ] : false
   }), [showToolbar]);
 
   const formats = [
@@ -61,20 +41,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'indent',
     'align',
     'blockquote', 'code-block',
-    'link', 'image',
-    'table', 'table-row', 'table-cell', 'table-cell-line'
+    'link', 'image'
   ];
-
-  const quillRef = useRef<ReactQuill | null>(null);
-
-  const handleInsertTable = useCallback(() => {
-    const editor = quillRef.current?.getEditor() as any;
-    if (!editor) return;
-    const betterTable = editor.getModule('better-table');
-    if (betterTable?.insertTable) {
-      betterTable.insertTable(3, 3);
-    }
-  }, []);
 
   useEffect(() => {
     // Inject custom CSS styles for theming
@@ -167,15 +135,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   return (
     <div className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
-      {showToolbar && !disabled && (
-        <div className="mb-2 flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={handleInsertTable} aria-label="Insert table">
-            Insert table
-          </Button>
-        </div>
-      )}
       <ReactQuill
-        ref={quillRef}
         key={`${disabled}-${showToolbar}`}
         theme="snow"
         value={value}
