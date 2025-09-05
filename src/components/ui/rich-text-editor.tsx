@@ -1,7 +1,12 @@
 import React, { useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import ReactQuill from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import QuillBetterTable from 'quill-better-table';
+import 'quill-better-table/dist/quill-better-table.css';
+
+// Register the table module
+Quill.register('modules/better-table', QuillBetterTable);
 
 interface RichTextEditorProps {
   value: string;
@@ -28,8 +33,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
-      ['blockquote', 'code-block', 'link', 'image', 'clean']
+      ['blockquote', 'code-block', 'link', 'image'],
+      [{ 'better-table': ['insertTable', 'insertRowAbove', 'insertRowBelow', 'insertColumnLeft', 'insertColumnRight', 'deleteTable', 'deleteRow', 'deleteColumn'] }],
+      ['clean']
     ] : false,
+    'better-table': {
+      operationMenu: {
+        items: {
+          unmergeCells: {
+            text: 'Another unmerge cells name'
+          }
+        }
+      }
+    }
   }), [showToolbar]);
 
   const formats = [
@@ -40,7 +56,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'indent',
     'align',
     'blockquote', 'code-block',
-    'link', 'image'
+    'link', 'image',
+    'better-table', 'table', 'table-cell-line', 'table-cell', 'table-row'
   ];
 
   useEffect(() => {
