@@ -2,11 +2,16 @@ import React, { useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import TableUI from 'quill-table-ui';
 import 'quill-table-ui/dist/index.css';
 
-// Register table module
-const TableUI = require('quill-table-ui');
-Quill.register('modules/tableUI', TableUI.default);
+// Register table module (ESM/CJS safe)
+if (typeof window !== 'undefined') {
+  // @ts-ignore
+  const TableUIModule = (TableUI as any)?.default ?? TableUI;
+  // @ts-ignore
+  Quill.register('modules/tableUI', TableUIModule);
+}
 
 interface RichTextEditorProps {
   value: string;
