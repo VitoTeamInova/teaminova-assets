@@ -1,10 +1,7 @@
-import React, { useMemo, useEffect, useRef, useState } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import 'quill-better-table/dist/quill-better-table.css';
-
-// Register table module (ESM/CJS safe)
 
 interface RichTextEditorProps {
   value: string;
@@ -25,37 +22,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<ReactQuill | null>(null);
-  const [tableReady, setTableReady] = useState(false);
-  const [tablePluginAvailable, setTablePluginAvailable] = useState(false);
-  const keyboardBindingsRef = useRef<any>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (typeof window === 'undefined') return;
-      try {
-        const [{ default: QuillNS }, { default: BetterTable }] = await Promise.all([
-          import('quill'),
-          import('quill-better-table') as any,
-        ]);
-        const quillVersion: string | undefined = (QuillNS as any).version;
-        const isV1 = !quillVersion || quillVersion.startsWith('1.');
-        if (isV1) {
-          (QuillNS as any).register({ 'modules/better-table': BetterTable }, true);
-          setTablePluginAvailable(true);
-        } else {
-          console.warn('Quill v2 detected; skipping quill-better-table registration.');
-          setTablePluginAvailable(false);
-        }
-        if (!cancelled) setTableReady(true);
-      } catch (error) {
-        console.warn('Failed to register quill-better-table:', error);
-        setTablePluginAvailable(false);
-        if (!cancelled) setTableReady(true);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   const modules = useMemo(() => {
     const toolbar = showToolbar ? [
@@ -71,12 +37,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       ['blockquote', 'code-block', 'link', 'image'],
       ['clean']
     ] : false;
-    const mods: any = { toolbar };
-    if (tablePluginAvailable) {
-      mods['better-table'] = { operationMenu: { enabled: true } };
-    }
-    return mods;
-  }, [showToolbar, tablePluginAvailable]);
+    return { toolbar };
+  }, [showToolbar]);
 
   const formats = [
     'header',
@@ -88,9 +50,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'indent',
     'align',
     'blockquote', 'code-block',
-    'link', 'image',
-    // Table formats (quill-better-table)
-    'table', 'table-row', 'table-cell', 'table-col'
+    'link', 'image'
   ];
 
   useEffect(() => {
@@ -288,13 +248,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     tableBtn?.addEventListener('click', clickHandler);
     return () => tableBtn?.removeEventListener('click', clickHandler);
-  }, [showToolbar, tableReady]);
+  }, [showToolbar]);
 
   return (
     <div ref={containerRef} className={cn("rich-text-editor", className)} data-disabled={disabled} data-show-toolbar={showToolbar}>
       <ReactQuill
         ref={quillRef as any}
-        key={`${disabled}-${showToolbar}-${tableReady}-${tablePluginAvailable}`}
+        key={`${disabled}-${showToolbar}`}
         theme="snow"
         value={value}
         onChange={onChange}
